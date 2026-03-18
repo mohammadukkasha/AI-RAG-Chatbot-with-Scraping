@@ -23,6 +23,16 @@ def store_embeddings(chunks: list, embeddings):
     )
 
 
+def direct_answer(question: str) -> str:
+    """Fallback: Groq se direct answer bina context ke"""
+    response = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": question}],
+        max_tokens=1024
+    )
+    return response.choices[0].message.content
+
+
 def rag_answer(question: str):
     try:
         q_embedding = model.encode([question])[0]
@@ -34,13 +44,14 @@ def rag_answer(question: str):
 
         docs = results.get("documents", [[]])[0]
 
+        # Context nahi mila — fallback to direct answer
         if not docs:
-            return None
+            return direct_answer(question)
 
         context = "\n".join(docs)
 
-        prompt = f"""You are a helpful assistant. Answer the question using ONLY the context provided below. 
-If the answer is not in the context, say 'I don't have that information.'
+        prompt = f"""You are a helpful assistant. Answer the question using the context provided below.
+If the answer is not in the context, answer from your own knowledge.
 
 Context:
 {context}
@@ -53,7 +64,14 @@ Question: {question}"""
             max_tokens=1024
         )
 
-        return response.choices[0].message.content
+        answer = response.choices[0].message.content
+
+        # Agar model ne bola "I don't have that information" — fallback
+        fallback_phrases = ["i don't have that information", "not in the context", "no information"]
+        if any(p in answer.lower() for p in fallback_phrases):
+            return direct_answer(question)
+
+        return answer
 
     except Exception as e:
         print(f"Error in rag_answer: {e}")
