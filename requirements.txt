@@ -1,0 +1,13 @@
+groq
+fastapi
+uvicorn
+motor
+python-dotenv
+passlib[bcrypt]
+python-jose[cryptography]
+sentence-transformers
+chromadb
+google-generativeai
+beautifulsoup4
+requests
+pydantic[email]
