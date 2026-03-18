@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVA RAG | Neural Intelligence Engine</title>
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Ionicons for Premium Icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    
+    <style>
+        :root {
+            --bg-deep: #030308;
+            --bg-card: rgba(15, 15, 35, 0.7);
+            --accent-primary: #818cf8;
+            --accent-secondary: #c084fc;
+            --accent-glow: rgba(129, 140, 248, 0.15);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --radius-xl: 32px;
+            --radius-lg: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, .heading { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Premium Individual Components */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(129, 140, 248, 0.3);
+            box-shadow: 0 20px 60px -15px rgba(0,0,0,0.6);
+        }
+
+        /* Layout Structure */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            padding: 24px;
+            gap: 24px;
+            width: 100%;
+        }
+
+        /* Sidebar Component */
+        .sidebar {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 24px;
+            z-index: 100;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 60px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(129, 140, 248, 0.3);
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, var(--accent-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-items { flex: 1; space-y: 12px; }
+
+        .nav-btn {
+            width: 100%;
+            padding: 18px 20px;
+            margin-bottom: 8px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .nav-btn.active {
+            background: rgba(129, 140, 248, 0.1);
+            color: var(--text-primary);
+            border-color: rgba(129, 140, 248, 0.2);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .nav-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            padding: 18px;
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover { opacity: 0.7; transform: scale(0.98); }
+
+        /* Main Content Panel */
+        .main-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+        }
+
+        /* Header Component */
+        .header-bar {
+            height: 90px;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #4ade80;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Chat/Dashboard Interface */
+        .content-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .chat-scroll::-webkit-scrollbar { width: 5px; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+
+        .message-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .bubble {
+            max-width: 75%;
+            padding: 24px 32px;
+            border-radius: 32px;
+            font-size: 15px;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        .bubble.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 10px 30px rgba(129, 140, 248, 0.2);
+        }
+
+        .bubble.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid var(--glass-border);
+            color: #cbd5e1;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Individual Ingestion Card */
+        .ingestion-center {
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 32px;
+            height: 100%;
+        }
+
+        .icon-hero {
+            width: 100px;
+            height: 100px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: var(--accent-primary);
+        }
+
+        /* Input Controls */
+        .controls-box {
+            padding: 32px 40px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            background: rgba(5, 5, 15, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 30px rgba(129, 140, 248, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .premium-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .btn-send-cool {
+            width: 56px;
+            height: 56px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 8px 20px rgba(129, 140, 248, 0.3);
+        }
+
+        .btn-send-cool:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 30px rgba(129, 140, 248, 0.5);
+        }
+
+        /* Auth Screen Redesign */
+        .auth-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-deep);
+            padding: 24px;
+        }
+
+        .auth-portal {
+            width: 100%;
+            max-width: 540px;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .auth-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-primary);
+            margin-left: 20px;
+        }
+
+        .portal-input {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px 24px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .portal-input:focus {
+            border-color: var(--accent-primary);
+            background: rgba(129, 140, 248, 0.05);
+        }
+
+        .btn-portal {
+            width: 100%;
+            padding: 24px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            color: white;
+            font-weight: 800;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 20px 40px rgba(129, 140, 248, 0.2);
+            transition: 0.4s;
+        }
+
+        .btn-portal:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(129, 140, 248, 0.4);
+        }
+
+        .hide { display: none !important; }
+        
+        .tab-switcher {
+            display: flex;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px;
+            border-radius: 16px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--glass-border);
+            color: white;
+        }
+
+        /* Ingested Websites List */
+        .source-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: 0.3s;
+        }
+
+        .source-card:hover {
+            background: rgba(129, 140, 248, 0.05);
+            border-color: var(--accent-primary);
+        }
+
+        .source-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: #000;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent-primary);
+        }
+
+        .source-info h4 { font-size: 14px; font-weight: 700; margin-bottom: 2px; color: #fff; }
+        .source-info p { font-size: 10px; font-weight: 800; color: #4ade80; text-transform: uppercase; letter-spacing: 1px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Auth Container -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="glass-card auth-portal">
+            <div class="logo-box" style="margin-bottom: 0;">
+                <div class="logo-icon"><ion-icon name="sparkles"></ion-icon></div>
+                <h1 class="logo-text">NOVA<span style="color:var(--accent-primary)">RAG</span></h1>
+            </div>
+            
+            <p style="color: var(--text-secondary); text-align: center; font-weight: 600; margin-top: -20px;">Initialize your neural session</p>
+
+            <div class="tab-switcher">
+                <button class="tab-btn active" onclick="switchLoginTab('login', this)">Login</button>
+                <button class="tab-btn" onclick="switchLoginTab('register', this)">Register</button>
+            </div>
+
+            <div id="login-view">
+                <div class="auth-input-group">
+                    <span class="field-label">Access Endpoint</span>
+                    <input type="email" id="l-email" class="portal-input" placeholder="name@domain.core">
+                </div>
+                <div class="auth-input-group">
+                    <span class="field-label">Encryption Key</span>
+                    <input type="password" id="l-password" class="portal-input" placeholder="••••••••">
+                </div>
+                <button class="btn-portal" onclick="handleLogin()">Authorize Entry</button>
+            </div>
+
+            <div id="register-view" class="hide">
+                <div class="auth-input-group">
+                    <span class="field-label">Unit Identity</span>
+                    <input type="text" id="r-username" class="portal-input" placeholder="Entity_01">
+                </div>
+                <div class="auth-input-group">
+                    <span class="field-label">Data Endpoint</span>
+                    <input type="email" id="r-email" class="portal-input" placeholder="name@domain.core">
+                </div>
+                <div class="auth-input-group">
+                    <span class="field-label">Master Key</span>
+                    <input type="password" id="r-password" class="portal-input" placeholder="••••••••">
+                </div>
+                <button class="btn-portal" onclick="handleRegister()">Generate Account</button>
+            </div>
+
+            <p id="auth-status" style="text-align: center; font-size: 12px; font-weight: 800; text-transform: uppercase; color: #ef4444; height: 16px;"></p>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="app-container hide">
+        
+        <!-- Sidebar -->
+        <aside class="glass-card sidebar">
+            <div class="logo-box">
+                <div class="logo-icon"><ion-icon name="cube-outline"></ion-icon></div>
+                <h1 class="logo-text">NOVA</h1>
+            </div>
+
+            <nav class="nav-items">
+                <div class="nav-btn active" id="btn-chat" onclick="switchPanel('chat')">
+                    <ion-icon name="chatbox-ellipses-outline" size="large"></ion-icon>
+                    Reasoning
+                </div>
+                <div class="nav-btn" id="btn-sources" onclick="switchPanel('sources')">
+                    <ion-icon name="globe-outline" size="large"></ion-icon>
+                    Data Nodes
+                </div>
+            </nav>
+
+            <div class="logout-btn" onclick="handleLogout()">
+                <ion-icon name="power-outline"></ion-icon>
+                Terminate Session
+            </div>
+        </aside>
+
+        <!-- Main Panel -->
+        <main class="main-panel">
+            
+            <!-- Header Bar -->
+            <header class="glass-card header-bar">
+                <div class="status-pill">
+                    <div class="status-dot"></div>
+                    Neural Agent Online
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <span id="user-display" style="font-weight: 800; font-size: 12px; letter-spacing: 1px; color: var(--text-secondary);">USER_ROOT</span>
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(129, 140, 248, 0.1); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; color: var(--accent-primary);">
+                        <ion-icon name="person-outline"></ion-icon>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Body Area -->
+            <div id="panel-chat" class="glass-card content-body">
+                <div class="chat-scroll" id="chat-messages">
+                    <div class="ingestion-center">
+                        <div class="icon-hero">
+                            <ion-icon name="sparkles" style="font-size: 48px;"></ion-icon>
+                        </div>
+                        <h2 class="heading" style="font-size: 40px; margin-bottom: 8px;">Awaiting Ingestion</h2>
+                        <p style="color: var(--text-secondary); font-weight: 600; max-width: 400px; line-height: 1.8;">Your universal reasoning node is ready. Feed me global data sources to begin.</p>
+                    </div>
+                </div>
+
+                <div class="controls-box">
+                    <form onsubmit="handleSend(event)" class="input-wrapper">
+                        <input type="text" id="chat-input" class="premium-input" placeholder="Query knowledge clusters...">
+                        <button type="submit" id="send-trigger" class="btn-send-cool">
+                            <ion-icon name="send"></ion-icon>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sources Panel -->
+            <div id="panel-sources" class="glass-card content-body hide">
+                <div class="ingestion-center" style="height: auto; padding: 40px;">
+                    <h2 class="heading" style="font-size: 32px; margin-bottom: 8px;">Ingest Source Node</h2>
+                    <p style="color: var(--text-secondary); font-weight: 600; margin-bottom: 40px;">Connect URL endpoints to Nova's vectorized core.</p>
+                    
+                    <form onsubmit="handleIngest(event)" style="width: 100%; max-width: 600px; display: flex; gap: 12px;">
+                        <input type="url" id="url-input" class="premium-input glass-card" style="flex: 1; border-radius: 20px; background: rgba(0,0,0,0.2);" placeholder="https://secure-endpoint.com" required>
+                        <button type="submit" id="ingest-btn" class="btn-cool" style="padding: 0 32px; border-radius: 20px; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border: none; color: white; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+                            Build Node
+                        </button>
+                    </form>
+                    <p id="ingest-status" style="margin-top: 16px; font-size: 11px; font-weight: 800; text-transform: uppercase;"></p>
+                </div>
+
+                <div style="flex: 1; padding: 0 40px 40px; overflow-y: auto;">
+                    <h3 class="heading" style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); margin-bottom: 24px;">Active Intelligence Nodes</h3>
+                    <div id="nodes-list">
+                        <!-- List populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let AUTH_TOKEN = localStorage.getItem('nova_token');
+        let CURRENT_USER = localStorage.getItem('nova_username');
+
+        // Check initialization
+        if (AUTH_TOKEN) {
+            initializeSession();
+        }
+
+        function switchLoginTab(type, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('login-view').classList.toggle('hide', type === 'register');
+            document.getElementById('register-view').classList.toggle('hide', type === 'login');
+            document.getElementById('auth-status').textContent = '';
+        }
+
+        function switchPanel(panel) {
+            document.getElementById('panel-chat').classList.toggle('hide', panel !== 'chat');
+            document.getElementById('panel-sources').classList.toggle('hide', panel !== 'sources');
+            document.getElementById('btn-chat').classList.toggle('active', panel === 'chat');
+            document.getElementById('btn-sources').classList.toggle('active', panel === 'sources');
+            if(panel === 'sources') loadSources();
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('l-email').value;
+            const password = document.getElementById('l-password').value;
+            const status = document.getElementById('auth-status');
+            
+            if (!email || !password) return status.textContent = "Incomplete Credentials";
+            
+            status.textContent = "Connecting...";
+            status.style.color = "var(--accent-primary)";
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    AUTH_TOKEN = data.access_token;
+                    const payload = JSON.parse(atob(AUTH_TOKEN.split('.')[1]));
+                    CURRENT_USER = payload.sub.split('@')[0]; // Simple aesthetic username
+                    localStorage.setItem('nova_token', AUTH_TOKEN);
+                    localStorage.setItem('nova_username', CURRENT_USER);
+                    initializeSession();
+                } else {
+                    status.textContent = data.detail || "Authentication Failed";
+                    status.style.color = "#ef4444";
+                }
+            } catch (err) {
+                status.textContent = "Backend Connection Failed";
+                status.style.color = "#ef4444";
+            }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('r-username').value;
+            const email = document.getElementById('r-email').value;
+            const password = document.getElementById('r-password').value;
+            const status = document.getElementById('auth-status');
+
+            if (!username || !email || !password) return status.textContent = "Data Incomplete";
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                if (res.ok) {
+                    status.textContent = "Node Registered. Please Login.";
+                    status.style.color = "#4ade80";
+                    setTimeout(() => switchLoginTab('login', document.querySelectorAll('.tab-btn')[0]), 2000);
+                } else {
+                    const data = await res.json();
+                    status.textContent = data.detail || "Registration Rejected";
+                }
+            } catch (e) { status.textContent = "System Fault"; }
+        }
+
+        function initializeSession() {
+            document.getElementById('auth-overlay').classList.add('hide');
+            document.getElementById('app-container').classList.remove('hide');
+            document.getElementById('user-display').textContent = CURRENT_USER.toUpperCase();
+            loadSources();
+        }
+
+        function handleLogout() {
+            localStorage.clear();
+            window.location.reload();
+        }
+
+        async function handleIngest(e) {
+            e.preventDefault();
+            const urlInput = document.getElementById('url-input');
+            const status = document.getElementById('ingest-status');
+            const btn = document.getElementById('ingest-btn');
+            
+            const url = urlInput.value;
+            status.textContent = "Analyzing Global Endpoint...";
+            status.style.color = "var(--accent-primary)";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/website/add-website`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
+                    body: JSON.stringify({ url })
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    status.textContent = `Completed: ${data.chunks} Knowledge Chunks Indexing`;
+                    status.style.color = "#4ade80";
+                    urlInput.value = '';
+                    loadSources();
+                } else {
+                    status.textContent = "Endpoint Denied Indexing";
+                    status.style.color = "#ef4444";
+                }
+            } catch (e) { status.textContent = "Vector Engine Timeout"; }
+            btn.disabled = false;
+        }
+
+        async function loadSources() {
+            try {
+                const res = await fetch(`${API_BASE}/api/website/my-websites`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+                const data = await res.json();
+                const list = document.getElementById('nodes-list');
+                list.innerHTML = data.websites.map(web => `
+                    <div class="source-card">
+                        <div class="source-icon"><ion-icon name="server-outline"></ion-icon></div>
+                        <div class="source-info">
+                            <h4>${web.url.replace('https://','').replace('http://','')}</h4>
+                            <p>${web.chunks} Segments Vectorized</p>
+                        </div>
+                    </div>
+                `).join('');
+                if (data.websites.length === 0) list.innerHTML = '<p style="color:var(--text-secondary); text-align:center; padding:40px; font-weight:700; opacity:0.3; text-transform:uppercase; letter-spacing:2px;">No Source Nodes Online</p>';
+            } catch (e) {}
+        }
+
+        async function handleSend(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const box = document.getElementById('chat-messages');
+            const msg = input.value;
+            if (!msg) return;
+
+            // Remove hero if first message
+            const hero = document.querySelector('.ingestion-center');
+            if (hero && !hero.classList.contains('hide') && box.contains(hero)) hero.remove();
+
+            input.value = '';
+
+            // Render User Bubble
+            box.innerHTML += `
+                <div class="message-row">
+                    <div class="bubble user">${msg}</div>
+                </div>
+            `;
+            box.scrollTop = box.scrollHeight;
+
+            // Render Loading
+            const loaderId = 'loader-' + Date.now();
+            box.innerHTML += `
+                <div class="message-row" id="${loaderId}">
+                    <div class="bubble bot" style="width: 80px; display:flex; gap:4px;">
+                        <span class="status-dot" style="width:6px; height:6px;"></span>
+                        <span class="status-dot" style="width:6px; height:6px; animation-delay:0.3s"></span>
+                        <span class="status-dot" style="width:6px; height:6px; animation-delay:0.6s"></span>
+                    </div>
+                </div>
+            `;
+            box.scrollTop = box.scrollHeight;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/chat/chat`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+                document.getElementById(loaderId).remove();
+
+                const isError = data.mode === 'error';
+                box.innerHTML += `
+                    <div class="message-row">
+                        <div class="bubble bot" style="${isError ? 'border-color: #ef4444; color: #ef4444;' : ''}">
+                            <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--accent-primary); letter-spacing: 1px; margin-bottom: 8px;">Agent Inference Response</div>
+                            ${data.response.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                `;
+                box.scrollTop = box.scrollHeight;
+            } catch (e) {
+                document.getElementById(loaderId).remove();
+                box.innerHTML += `<div class="message-row"><div class="bubble bot" style="color: #ef4444;">Neural Engine Offline</div></div>`;
+            }
+        }
+    </script>
+</body>
+</html>
